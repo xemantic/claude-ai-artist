@@ -110,7 +110,7 @@ repositories {
 
 dependencies {
 
-    implementation("com.xemantic.anthropic:anthropic-sdk-kotlin:0.5.0")
+    implementation("com.xemantic.anthropic:anthropic-sdk-kotlin:0.6.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.3")
     implementation("io.ktor:ktor-client-java:3.0.0")
