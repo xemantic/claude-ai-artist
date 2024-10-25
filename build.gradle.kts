@@ -93,7 +93,6 @@ val applicationLogging = Logging.FULL
 
 // ------------------------------------------------------------------------------------------------------------------ //
 
-@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     java
     alias(libs.plugins.kotlin.jvm)
@@ -101,6 +100,7 @@ plugins {
     alias(libs.plugins.runtime)
     alias(libs.plugins.gitarchive.tomarkdown).apply(false)
     alias(libs.plugins.versions)
+    kotlin("plugin.serialization") version "2.0.21" // needed if you use tools
 }
 
 repositories {
@@ -109,6 +109,11 @@ repositories {
 }
 
 dependencies {
+
+    implementation("com.xemantic.anthropic:anthropic-sdk-kotlin:0.5.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.3")
+    implementation("io.ktor:ktor-client-java:3.0.0")
 
 //    implementation(libs.jsoup)
 //    implementation(libs.gson)
@@ -139,11 +144,11 @@ dependencies {
 // ------------------------------------------------------------------------------------------------------------------ //
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "11"
+    kotlinOptions.jvmTarget = "17"
 }
 
 // ------------------------------------------------------------------------------------------------------------------ //
