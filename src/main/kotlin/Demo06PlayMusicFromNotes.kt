@@ -1,16 +1,14 @@
 import com.xemantic.anthropic.Anthropic
-import com.xemantic.anthropic.message.Image
+import com.xemantic.anthropic.content.Image
+import com.xemantic.anthropic.content.ToolUse
 import com.xemantic.anthropic.message.Message
-import com.xemantic.anthropic.message.ToolResult
-import com.xemantic.anthropic.message.ToolUse
 import com.xemantic.anthropic.schema.Description
 import com.xemantic.anthropic.tool.AnthropicTool
-import com.xemantic.anthropic.tool.UsableTool
+import com.xemantic.anthropic.tool.ToolInput
 import kotlinx.coroutines.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import java.io.File
 import javax.sound.midi.MidiChannel
 import javax.sound.midi.MidiSystem
 
@@ -20,17 +18,15 @@ fun main() {
         val anthropic = Anthropic {
             tool<PlayMusic> {
                 synthesizer = synth
+                scope = this@runBlocking
             }
         }
         val response = anthropic.messages.create {
             +Message {
                 +"Can you play the music from the attached picture?"
-                +Image(
-                    file = File("data/images/happy-birthday-chords-two-hands.webp"),
-                    mediaType = Image.MediaType.IMAGE_WEBP
-                )
+                +Image("data/images/chopin.jpg")
             }
-            useTool<PlayMusic>()
+            singleTool<PlayMusic>()
         }
         val toolUse = response.content.filterIsInstance<ToolUse>().first()
         toolUse.use()
@@ -39,22 +35,30 @@ fun main() {
 
 @AnthropicTool("PlayMusic")
 @Description("Plays the music on the local MIDI device")
-data class PlayMusic(val notes: List<Note>) : UsableTool {
+data class PlayMusic(val notes: List<Note>) : ToolInput() {
 
     @Transient
     lateinit var synthesizer: MidiChannel
 
-    override suspend fun use(toolUseId: String): ToolResult = coroutineScope {
-        notes.forEach { note ->
+    @Transient
+    lateinit var scope: CoroutineScope
+
+    init {
+      use {
+        scope.launch {
+          notes.forEach { note ->
             launch {
-                delay(note.startTime)
-                synthesizer.noteOn(note.midiKey, 127)
-                delay(note.duration)
-                synthesizer.noteOff(note.midiKey, 0)
+              delay(note.startTime)
+              synthesizer.noteOn(note.midiKey, 127)
+              delay(note.duration)
+              synthesizer.noteOff(note.midiKey, 0)
             }
+          }
+          "music was played"
         }
-        ToolResult(toolUseId, "music was played")
+      }
     }
+
 }
 
 @Serializable

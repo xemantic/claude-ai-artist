@@ -1,8 +1,10 @@
 import com.xemantic.anthropic.Anthropic
+import com.xemantic.anthropic.content.Image
+import com.xemantic.anthropic.content.ToolUse
 import com.xemantic.anthropic.message.*
 import com.xemantic.anthropic.schema.Description
 import com.xemantic.anthropic.tool.AnthropicTool
-import com.xemantic.anthropic.tool.UsableTool
+import com.xemantic.anthropic.tool.ToolInput
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 
@@ -10,10 +12,12 @@ import kotlinx.serialization.Serializable
 @Description("Receives entries from the image")
 data class OpenCallsReceiver(
   val calls: List<Entry>
-) : UsableTool {
-  override suspend fun use(toolUseId: String) = ToolResult(
-    toolUseId, "Data provided to client"
-  )
+) : ToolInput() {
+  init {
+    use {
+      "Data provided to client"
+    }
+  }
 }
 
 @Serializable
@@ -30,13 +34,10 @@ fun main() = runBlocking {
 
   val response = client.messages.create {
     +Message {
+      +Image("data/images/open-calls-creatives.jpg")
       +"Decode open calls from supplied image"
-      +Image(
-        path = "data/images/open-calls-creatives.jpg",
-        mediaType = Image.MediaType.IMAGE_JPEG
-      )
     }
-    useTool<OpenCallsReceiver>()
+    singleTool<OpenCallsReceiver>()
   }
 
   val tool = response.content.filterIsInstance<ToolUse>().first()

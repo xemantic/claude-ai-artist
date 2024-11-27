@@ -1,11 +1,10 @@
 import com.xemantic.anthropic.Anthropic
+import com.xemantic.anthropic.content.ToolUse
 import com.xemantic.anthropic.message.Message
 import com.xemantic.anthropic.message.StopReason
-import com.xemantic.anthropic.message.ToolResult
-import com.xemantic.anthropic.message.ToolUse
 import com.xemantic.anthropic.schema.Description
 import com.xemantic.anthropic.tool.AnthropicTool
-import com.xemantic.anthropic.tool.UsableTool
+import com.xemantic.anthropic.tool.ToolInput
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -31,17 +30,16 @@ fun main() = application {
     }
 
     launch(Dispatchers.IO) {
-      println("request")
       val response = anthropic.messages.create {
         system(systemPrompt)
-        +Message { +"Draw a tree" }
-        useTool<DrawLines>()
+        +Message { +"Draw Mona Lisa using 10 lines" }
+        singleTool<DrawLines>()
       }
       if (response.stopReason == StopReason.TOOL_USE) {
         response.content.filterIsInstance<ToolUse>().forEach { it.use() }
       }
-      println("$response")
     }
+
     extend {
       linesToDraw.forEach { line ->
         drawer.stroke = line.color
@@ -57,11 +55,13 @@ fun main() = application {
 @Description("Draws lines specified in the lines list")
 data class DrawLines(
   val lines: List<Line>
-) : UsableTool {
+) : ToolInput() {
 
-  override suspend fun use(toolUseId: String): ToolResult {
-    linesToDraw += lines
-    return ToolResult(toolUseId, "line drawn")
+  init {
+    use {
+      linesToDraw = lines
+      "line drawn"
+    }
   }
 
 }

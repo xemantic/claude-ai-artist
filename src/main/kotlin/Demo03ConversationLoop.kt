@@ -1,10 +1,10 @@
 import com.xemantic.anthropic.Anthropic
+import com.xemantic.anthropic.content.Text
 import com.xemantic.anthropic.message.Message
-import com.xemantic.anthropic.message.Text
 import com.xemantic.anthropic.message.plusAssign
 import kotlinx.coroutines.runBlocking
 
-val systemPrompt = """
+const val systemPrompt = """
 Act as an art critic. I am aspiring artists. Please be very
 critical regarding ideas of my conceptual artwork.
 """

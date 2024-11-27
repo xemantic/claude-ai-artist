@@ -16,7 +16,7 @@ fun main() = runBlocking {
   val response1 = anthropic.messages.create {
     messages = conversation
   }
-  println(response1)
+  println(response1.content)
   conversation += response1
   conversation += Message {
     +"Why do you think I asked you this question?"
@@ -24,7 +24,7 @@ fun main() = runBlocking {
   val response2 = anthropic.messages.create {
     messages = conversation
   }
-  println(response2)
+  println(response2.content)
   conversation += response2
 
   println("The whole past conversation is included in the token window")

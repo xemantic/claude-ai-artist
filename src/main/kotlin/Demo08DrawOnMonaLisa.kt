@@ -1,8 +1,11 @@
 import com.xemantic.anthropic.Anthropic
+import com.xemantic.anthropic.content.Image
+import com.xemantic.anthropic.content.Text
+import com.xemantic.anthropic.content.ToolUse
 import com.xemantic.anthropic.message.*
 import com.xemantic.anthropic.schema.Description
 import com.xemantic.anthropic.tool.AnthropicTool
-import com.xemantic.anthropic.tool.UsableTool
+import com.xemantic.anthropic.tool.ToolInput
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -14,6 +17,10 @@ import org.openrndr.math.Vector2
 
 var circlesToDraw = emptyList<Circle>()
 
+// Downloaded from Wikipedia
+private const val monaLisaPath =
+  "data/images/Leonardo_da_Vinci_-_Mona_Lisa_(Louvre,_Paris)FXD.jpg"
+
 fun main() = application {
 
     configure {
@@ -23,26 +30,23 @@ fun main() = application {
 
     program {
 
-        val schoolImage = loadImage("data/images/Leonardo_da_Vinci_-_Mona_Lisa_(Louvre,_Paris)FXD.jpg")
+        val schoolImage = loadImage(monaLisaPath)
 
-        val systemPrompt = "You can draw on a canvas visible to the human. Current resolution: ${width}x${height}, the background is black"
+        val systemPrompt = "You can draw on a canvas visible to the human. Current resolution: ${width}x${height}"
         val anthropic = Anthropic {
             tool<DrawCircles>()
         }
 
         launch(Dispatchers.IO) {
-            println("request")
+            println("Prompting Claude (Anthropic API)")
             val response = anthropic.messages.create {
                 system(systemPrompt)
                 +Message {
-                    +"Draw black glasses."
-                    +Image(
-                        path = "data/images/Leonardo_da_Vinci_-_Mona_Lisa_(Louvre,_Paris)FXD.webp",
-                        mediaType = Image.MediaType.IMAGE_WEBP
-                    )
+                    +Image(monaLisaPath)
+                    +"Draw black circles around the eyes of the person on this picture."
+
                 }
-                useTool<DrawCircles>()
-                toolChoice = ToolChoice.Auto()
+                allTools()
             }
             if (response.stopReason == StopReason.TOOL_USE) {
                 response.content.forEach {
@@ -53,7 +57,6 @@ fun main() = application {
                     }
                 }
             }
-            println("$response")
         }
         extend {
             drawer.image(schoolImage, 0.0, 0.0, width.toDouble(), height.toDouble())
@@ -75,12 +78,14 @@ fun main() = application {
 @Description("Draws circles specified in the circle list")
 data class DrawCircles(
     val circles: List<Circle>
-) : UsableTool {
+) : ToolInput() {
 
-    override suspend fun use(toolUseId: String): ToolResult {
-        circlesToDraw += circles
-        return ToolResult(toolUseId, "circle drawn")
+  init {
+    use {
+      circlesToDraw += circles
+      "circle drawn"
     }
+  }
 
 }
 
