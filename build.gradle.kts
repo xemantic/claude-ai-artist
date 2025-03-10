@@ -100,7 +100,7 @@ plugins {
     alias(libs.plugins.runtime)
     alias(libs.plugins.gitarchive.tomarkdown).apply(false)
     alias(libs.plugins.versions)
-    kotlin("plugin.serialization") version "2.0.21" // needed if you use tools
+    kotlin("plugin.serialization") version "2.1.0" // needed if you use tools
 }
 
 repositories {
@@ -110,10 +110,10 @@ repositories {
 
 dependencies {
 
-    implementation("com.xemantic.anthropic:anthropic-sdk-kotlin:0.9.3")
+    implementation("com.xemantic.anthropic:anthropic-sdk-kotlin:0.15")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.3")
-    implementation("io.ktor:ktor-client-java:3.0.0")
+    implementation("io.ktor:ktor-client-java:3.1.0")
 
 //    implementation(libs.jsoup)
 //    implementation(libs.gson)
